@@ -1,0 +1,102 @@
+// HuffmanCoder.h（Huffman编码算法实现）
+#ifndef HUFFMANCODER_H
+#define HUFFMANCODER_H
+#include "HuffTree.h"
+#include "Bitmap.h"
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <string>
+#include <cctype>
+
+// Huffman编码算法实现
+class HuffmanCoder {
+private:
+    HuffTree* root;                  // Huffman树的根节点
+    HuffCode codeTable[26];          // 26个字母的编码表（a-z对应0-25）
+    int freq[26] = {0};              // 字母频率统计（初始化为0）
+
+    // 递归生成编码表：遍历Huffman树，记录路径（0=左，1=右）
+    void generateCodes(BinTree* node, Bitmap& path, int len) {
+        if (!node) return;
+        // 叶子节点：对应一个字母，记录编码
+        if (!node->left && !node->right) {
+            int idx = node->data - 'a';
+            codeTable[idx].code = path;
+            codeTable[idx].length = len;
+            return;
+        }
+        // 左子树：路径添加0
+        path.set(len); path.clear(len); // 置0
+        generateCodes(node->left, path, len + 1);
+        // 右子树：路径添加1
+        path.set(len);
+        generateCodes(node->right, path, len + 1);
+    }
+
+public:
+    // 步骤1：统计文本中26个字母的频率
+    void countFrequency(const std::string& text) {
+        for (char c : text) {
+            if (std::isalpha(c)) {
+                char lower = std::tolower(c);
+                freq[lower - 'a']++; // 小写字母对应索引0-25
+            }
+        }
+    }
+
+    // 步骤2：构建Huffman树
+    void buildHuffTree() {
+        // 小顶堆：按权重从小到大排序
+        auto cmp = [](HuffTree* a, HuffTree* b) { 
+            return a->weight > b->weight; 
+        };
+        std::priority_queue<HuffTree*, std::vector<HuffTree*>, decltype(cmp)> heap(cmp);
+
+        // 初始化叶子节点（仅加入频率>0的字母）
+        for (int i = 0; i < 26; i++) {
+            if (freq[i] > 0) {
+                heap.push(new HuffTree('a' + i, freq[i]));
+            }
+        }
+
+        // 合并节点，构建Huffman树
+        while (heap.size() > 1) {
+            HuffTree* a = heap.top(); heap.pop();
+            HuffTree* b = heap.top(); heap.pop();
+            heap.push(a->merge(a, b)); // 合并两个子树
+        }
+        root = heap.top(); // 最终堆顶为根节点
+    }
+
+    // 步骤3：生成编码表
+    void buildCodeTable() {
+        Bitmap path; // 临时存储编码路径
+        generateCodes(root, path, 0);
+    }
+
+    // 步骤4：对单词进行编码
+    std::string encodeWord(const std::string& word) {
+        std::string res;
+        for (char c : word) {
+            if (!std::isalpha(c)) continue;
+            char lower = std::tolower(c);
+            int idx = lower - 'a';
+            char* codeStr = codeTable[idx].toStr();
+            res += codeStr;
+            delete[] codeStr; // 释放内存
+        }
+        return res;
+    }
+
+    // 辅助：打印编码表
+    void printCodeTable() {
+        std::cout << "=== Huffman编码表 ===" << std::endl;
+        for (int i = 0; i < 26; i++) {
+            if (freq[i] == 0) continue;
+            char* codeStr = codeTable[i].toStr();
+            std::cout << char('a' + i) << " : " << codeStr << std::endl;
+            delete[] codeStr;
+        }
+    }
+};
