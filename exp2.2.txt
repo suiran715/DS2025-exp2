@@ -1,0 +1,20 @@
+// HuffTree.h（基于BinTree的Huffman树）
+#ifndef HUFFTREE_H
+#define HUFFTREE_H
+#include "BinTree.h"
+
+// 基于BinTree构建HuffTree
+struct HuffTree : BinTree {
+    // 构造函数（继承BinTree）
+    HuffTree(char d, int w) : BinTree(d, w) {}
+
+    // 合并两个Huffman子树，生成新的父节点
+    HuffTree* merge(HuffTree* a, HuffTree* b) {
+        // 新节点权重为两子树权重之和，数据为占位符
+        HuffTree* root = new HuffTree('\0', a->weight + b->weight);
+        root->left = a;
+        root->right = b;
+        return root;
+    }
+};
+
