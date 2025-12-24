@@ -1,0 +1,15 @@
+// BinTree.h（二叉树数据结构）
+#ifndef BINTREE_H
+#define BINTREE_H
+
+// 二叉树数据结构 BinTree
+struct BinTree {
+    char data;          // 节点数据（字符/占位符）
+    int weight;         // 权重（Huffman树用）
+    BinTree *left, *right; // 左右孩子
+
+    // 构造函数
+    BinTree(char d = '\0', int w = 0) 
+        : data(d), weight(w), left(nullptr), right(nullptr) {}
+};
+
